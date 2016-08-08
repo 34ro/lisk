@@ -55,7 +55,9 @@ Transaction.prototype.create = function (data) {
 
 	trs.id = this.getId(trs);
 
-	trs.fee = private.types[trs.type].calculateFee.call(this, trs, data.sender) || false;
+	if (!data.fee) {
+		trs.fee = private.types[trs.type].calculateFee.call(this, trs, data.sender) || false;
+	}
 
 	return trs;
 }

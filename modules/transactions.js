@@ -150,6 +150,7 @@ private.attachApi = function () {
 		"get /get": "getTransaction",
 		"get /unconfirmed/get": "getUnconfirmedTransaction",
 		"get /unconfirmed": "getUnconfirmedTransactions",
+		"get /sign": "getSignedTransaction",
 		"put /": "addTransactions"
 	});
 
@@ -336,6 +337,28 @@ Transactions.prototype.getUnconfirmedTransactionList = function (reverse, limit)
 	}
 
 	return a;
+}
+
+Transactions.prototype.addSign = function (body) {
+	modules.accounts.openAccount.openAccount(body.secret, function (err, account) {
+		if (err) {
+			// err
+		}
+
+		try {
+			var transaction = library.logic.transaction.create({
+				type: transactionTypes.SEND,
+				amount: body.amount,
+				sender: account,
+				recipientId: recipientId,
+				keypair: keypair
+			});
+		} catch (e) {
+			return cb(e.toString());
+		}
+
+		return transaction;
+	});
 }
 
 Transactions.prototype.removeUnconfirmedTransaction = function (id) {
@@ -697,6 +720,47 @@ shared.getUnconfirmedTransactions = function (req, cb) {
 		}
 
 		return cb(null, {transactions: toSend});
+	});
+}
+
+shared.getSignedTransaction = function (req, cb) {
+	var query = req.body;
+	library.scheme.validate(body, {
+		type: "object",
+		properties: {
+			secret: {
+				type: "string",
+				minLength: 1,
+				maxLength: 100
+			},
+			amount: {
+				type: "integer",
+				minimum: 1,
+				maximum: constants.totalAmount
+			},
+			fee: {
+				type: "integer",
+				minimum: 1,
+				maximum: constants.totalAmount
+			},
+			recipientId: {
+				type: "string",
+				minLength: 1
+			}
+		},
+		required: ["secret", "amount", "fee", "recipientId"]
+	}, function (err) {
+		if (err) {
+			return cb(err[0].message);
+		}
+
+		var signedTransaction = self.addSign(query);
+
+		if (!signedTransaction) {
+			return cb("Sign transaction failure");
+		}
+
+		return cb(null, {transaction: signedTransaction});
 	});
 }
 
