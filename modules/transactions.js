@@ -769,6 +769,7 @@ shared.getSignedTransaction = function (req, cb) {
       if (err) {
         return cb(err);
       }
+
       var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
       var keypair = ed.MakeKeypair(hash);
 
@@ -784,7 +785,17 @@ shared.getSignedTransaction = function (req, cb) {
         return cb(e.toString());
       }
 
-      cb(null, {transactionId: transaction.id,signature: transaction.signature});
+      console.log("trs");
+      console.log(transaction);
+      cb(null, {
+        id: transaction.id,
+        type: transaction.type,
+        timestamp: transaction.timestamp,
+        amount: transaction.amount,
+        fee: transaction.fee,
+        senderPublicKey: transaction.senderPublicKey,
+        signature: transaction.signature
+      });
     });
   });
 }
