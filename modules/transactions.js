@@ -795,7 +795,7 @@ shared.getSignedTransaction = function (req, cb) {
         senderId: transaction.senderId,
         recipientId: transaction.recipientId,
         amount: transaction.amount,
-        fee: transaction.fee,
+        fee: constants.fees.send,
         asset: transaction.asset,
         senderPublicKey: transaction.senderPublicKey,
         signature: transaction.signature
@@ -985,6 +985,14 @@ shared.addSignedTransactions = function (req, cb) {
 				type: "string",
 				minLength: 1
 			},
+      type: {
+				type: "integer",
+				minimum: 0,
+      },
+      timestapmp: {
+				type: "integer",
+				minimum: 0,
+      },
 			recipientId: {
 				type: "string",
 				minLength: 1
@@ -994,12 +1002,16 @@ shared.addSignedTransactions = function (req, cb) {
 				minimum: 1,
 				maximum: constants.totalAmount
 			},
-			publicKey: {
+			senderPublicKey: {
 				type: "string",
 				format: "publicKey"
-			}
+			},
+      signature: {
+        type: "string",
+        format: "signature"
+      }
 		},
-		required: ["amount", "recipientId"]
+		required: ["id", "type", "timestamp", "recipientId", "amount", "senderPublicKey", "signature"]
 	}, function (err) {
 		if (err) {
 			return cb(err[0].message);
@@ -1026,8 +1038,8 @@ shared.addSignedTransactions = function (req, cb) {
         recipientId: body.recipientId,
         timestamp: body.timestamp,
         signature: body.signature,
-        fee: body.fee,
-        asset: {}
+        fee: constants.fees.send,
+        asset: body.asset
       };
 
       modules.transactions.receiveTransactions([transaction], cb);
