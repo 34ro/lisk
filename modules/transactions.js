@@ -793,6 +793,7 @@ shared.getSignedTransaction = function (req, cb) {
         timestamp: transaction.timestamp,
         amount: transaction.amount,
         fee: transaction.fee,
+        asset: transaction.asset,
         senderPublicKey: transaction.senderPublicKey,
         signature: transaction.signature
       });
