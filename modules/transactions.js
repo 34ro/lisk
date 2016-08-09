@@ -151,6 +151,7 @@ private.attachApi = function () {
 		"get /unconfirmed/get": "getUnconfirmedTransaction",
 		"get /unconfirmed": "getUnconfirmedTransactions",
 		"put /sign": "getSignedTransaction",
+		"put /signed": "addSignedTransactions",
 		"put /": "addTransactions"
 	});
 
@@ -791,6 +792,8 @@ shared.getSignedTransaction = function (req, cb) {
         id: transaction.id,
         type: transaction.type,
         timestamp: transaction.timestamp,
+        senderId: transaction.senderId,
+        recipientId: transaction.recipientId,
         amount: transaction.amount,
         fee: transaction.fee,
         asset: transaction.asset,
@@ -959,6 +962,76 @@ shared.addTransactions = function (req, cb) {
 					});
 				}
 			});
+		}, function (err, transaction) {
+			if (err) {
+				return cb(err);
+			}
+
+			return cb(null, {transactionId: transaction[0].id});
+		});
+	});
+}
+
+shared.addSignedTransactions = function (req, cb) {
+	var body = req.body;
+	library.scheme.validate(body, {
+		type: "object",
+		properties: {
+			id: {
+				type: 'string',
+				minLength: 1
+			},
+			senderId: {
+				type: "string",
+				minLength: 1
+			},
+			recipientId: {
+				type: "string",
+				minLength: 1
+			},
+			amount: {
+				type: "integer",
+				minimum: 1,
+				maximum: constants.totalAmount
+			},
+			publicKey: {
+				type: "string",
+				format: "publicKey"
+			}
+		},
+		required: ["amount", "recipientId"]
+	}, function (err) {
+		if (err) {
+			return cb(err[0].message);
+		}
+
+		//var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
+		//var keypair = ed.MakeKeypair(hash);
+
+		//if (body.publicKey) {
+		//	if (keypair.publicKey.toString('hex') != body.publicKey) {
+		//		return cb("Invalid passphrase");
+		//	}
+		//}
+
+    console.log("trs.id");
+    console.log(body.id);
+    library.balancesSequence.add(function (cb) {
+      var transaction = {
+        id: body.id,
+        type: body.type,
+        amount: body.amount,
+        senderPublicKey: body.senderPublicKey,
+        requesterPublicKey: null,
+        recipientId: body.recipientId,
+        timestamp: body.timestamp,
+        signature: body.signature,
+        fee: body.fee,
+        asset: {}
+      };
+
+      modules.transactions.receiveTransactions([transaction], cb);
+
 		}, function (err, transaction) {
 			if (err) {
 				return cb(err);
