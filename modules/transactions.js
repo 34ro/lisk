@@ -150,7 +150,7 @@ private.attachApi = function () {
 		"get /get": "getTransaction",
 		"get /unconfirmed/get": "getUnconfirmedTransaction",
 		"get /unconfirmed": "getUnconfirmedTransactions",
-		"get /sign": "getSignedTransaction",
+		"put /sign": "getSignedTransaction",
 		"put /": "addTransactions"
 	});
 
@@ -339,26 +339,37 @@ Transactions.prototype.getUnconfirmedTransactionList = function (reverse, limit)
 	return a;
 }
 
-Transactions.prototype.addSign = function (body) {
-	modules.accounts.openAccount.openAccount(body.secret, function (err, account) {
-		if (err) {
-			// err
-		}
+Transactions.prototype.addSign = function (body,cb) {
+    console.log("addsign");
 
-		try {
-			var transaction = library.logic.transaction.create({
-				type: transactionTypes.SEND,
-				amount: body.amount,
-				sender: account,
-				recipientId: recipientId,
-				keypair: keypair
-			});
-		} catch (e) {
-			return cb(e.toString());
-		}
+    modules.accounts.openAccount(body.secret, function (err, account) {
+      if (err) {
+        return cb(err);
+      }
+      var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
+      var keypair = ed.MakeKeypair(hash);
 
-		return transaction;
-	});
+      try {
+        var transaction = library.logic.transaction.create({
+          type: transactionTypes.SEND,
+            amount: body.amount,
+            sender: account,
+            recipientId: body.recipientId,
+            keypair: keypair
+        });
+        console.log("transaction1");
+        console.log(transaction);
+      } catch (e) {
+        console.log("transaction3");
+        console.log(transaction);
+        console.log(e);
+        return cb(e.toString());
+      }
+      console.log("transaction2");
+      console.log(transaction);
+
+      cb(null, {transactionId: transaction.id,signature: transaction.signature});
+    });
 }
 
 Transactions.prototype.removeUnconfirmedTransaction = function (id) {
@@ -724,44 +735,58 @@ shared.getUnconfirmedTransactions = function (req, cb) {
 }
 
 shared.getSignedTransaction = function (req, cb) {
-	var query = req.body;
-	library.scheme.validate(body, {
-		type: "object",
-		properties: {
-			secret: {
-				type: "string",
-				minLength: 1,
-				maxLength: 100
-			},
-			amount: {
-				type: "integer",
-				minimum: 1,
-				maximum: constants.totalAmount
-			},
-			fee: {
-				type: "integer",
-				minimum: 1,
-				maximum: constants.totalAmount
-			},
-			recipientId: {
-				type: "string",
-				minLength: 1
-			}
-		},
-		required: ["secret", "amount", "fee", "recipientId"]
-	}, function (err) {
-		if (err) {
-			return cb(err[0].message);
-		}
+  var body = req.body;
+  library.scheme.validate(body, {
+    type: "object",
+    properties: {
+      secret: {
+        type: "string",
+        minLength: 1,
+        maxLength: 100
+      },
+      amount: {
+        type: "integer",
+        minimum: 1,
+        maximum: constants.totalAmount
+      },
+      fee: {
+        type: "integer",
+        minimum: 1,
+        maximum: constants.totalAmount
+      },
+      recipientId: {
+        type: "string",
+        minLength: 1
+      }
+    },
+    required: ["secret", "amount", "fee", "recipientId"]
+  }, function (err) {
+    if (err) {
+      return cb(err[0].message);
+    }
 
-		var signedTransaction = self.addSign(query);
+    modules.accounts.openAccount(body.secret, function (err, account) {
+      if (err) {
+        return cb(err);
+      }
+      var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
+      var keypair = ed.MakeKeypair(hash);
 
-		if (!signedTransaction) {
-			return cb("Sign transaction failure");
-		}
+      try {
+        var transaction = library.logic.transaction.create({
+          type: transactionTypes.SEND,
+            amount: body.amount,
+            sender: account,
+            recipientId: body.recipientId,
+            keypair: keypair
+        });
+      } catch (e) {
+        return cb(e.toString());
+      }
 
-		return cb(null, {transaction: signedTransaction});
-	});
+      cb(null, {transactionId: transaction.id,signature: transaction.signature});
+    });
+  });
 }
 
 shared.addTransactions = function (req, cb) {
