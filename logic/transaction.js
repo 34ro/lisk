@@ -199,11 +199,11 @@ Transaction.prototype.process = function (trs, sender, requester, cb) {
 		var txId = this.getId(trs);
 	} catch (e) {
 		this.scope.logger.error(e.toString());
-		return setImmediate(cb, "Invalid transaction id1");
+		return setImmediate(cb, "Invalid transaction id");
 	}
 
 	if (trs.id && trs.id != txId) {
-		return setImmediate(cb, "Invalid transaction id2" + trs.id + "," + txId);
+		return setImmediate(cb, "Invalid transaction id");
 	} else {
 		trs.id = txId;
 	}
