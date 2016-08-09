@@ -750,17 +750,12 @@ shared.getSignedTransaction = function (req, cb) {
         minimum: 1,
         maximum: constants.totalAmount
       },
-      fee: {
-        type: "integer",
-        minimum: 1,
-        maximum: constants.totalAmount
-      },
       recipientId: {
         type: "string",
         minLength: 1
       }
     },
-    required: ["secret", "amount", "fee", "recipientId"]
+    required: ["secret", "amount", "recipientId"]
   }, function (err) {
     if (err) {
       return cb(err[0].message);
@@ -786,8 +781,6 @@ shared.getSignedTransaction = function (req, cb) {
         return cb(e.toString());
       }
 
-      console.log("trs");
-      console.log(transaction);
       cb(null, {
         id: transaction.id,
         type: transaction.type,
@@ -795,7 +788,6 @@ shared.getSignedTransaction = function (req, cb) {
         senderId: transaction.senderId,
         recipientId: transaction.recipientId,
         amount: transaction.amount,
-        fee: constants.fees.send,
         asset: transaction.asset,
         senderPublicKey: transaction.senderPublicKey,
         signature: transaction.signature
