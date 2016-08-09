@@ -150,8 +150,8 @@ private.attachApi = function () {
 		"get /get": "getTransaction",
 		"get /unconfirmed/get": "getUnconfirmedTransaction",
 		"get /unconfirmed": "getUnconfirmedTransactions",
-		"put /sign": "getSignedTransaction",
-		"put /signed": "addSignedTransactions",
+		"put /unconfirmed": "addUnconfirmedTransactions",
+		"put /signed": "createSignedTransaction",
 		"put /": "addTransactions"
 	});
 
@@ -338,39 +338,6 @@ Transactions.prototype.getUnconfirmedTransactionList = function (reverse, limit)
 	}
 
 	return a;
-}
-
-Transactions.prototype.addSign = function (body,cb) {
-    console.log("addsign");
-
-    modules.accounts.openAccount(body.secret, function (err, account) {
-      if (err) {
-        return cb(err);
-      }
-      var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
-      var keypair = ed.MakeKeypair(hash);
-
-      try {
-        var transaction = library.logic.transaction.create({
-          type: transactionTypes.SEND,
-            amount: body.amount,
-            sender: account,
-            recipientId: body.recipientId,
-            keypair: keypair
-        });
-        console.log("transaction1");
-        console.log(transaction);
-      } catch (e) {
-        console.log("transaction3");
-        console.log(transaction);
-        console.log(e);
-        return cb(e.toString());
-      }
-      console.log("transaction2");
-      console.log(transaction);
-
-      cb(null, {transactionId: transaction.id,signature: transaction.signature});
-    });
 }
 
 Transactions.prototype.removeUnconfirmedTransaction = function (id) {
@@ -735,25 +702,25 @@ shared.getUnconfirmedTransactions = function (req, cb) {
 	});
 }
 
-shared.getSignedTransaction = function (req, cb) {
+shared.createSignedTransaction = function (req, cb) {
   var body = req.body;
   library.scheme.validate(body, {
     type: "object",
     properties: {
       secret: {
         type: "string",
-        minLength: 1,
-        maxLength: 100
+    minLength: 1,
+    maxLength: 100
       },
-      amount: {
-        type: "integer",
-        minimum: 1,
-        maximum: constants.totalAmount
-      },
-      recipientId: {
-        type: "string",
-        minLength: 1
-      }
+    amount: {
+      type: "integer",
+    minimum: 1,
+    maximum: constants.totalAmount
+    },
+    recipientId: {
+      type: "string",
+    minLength: 1
+    }
     },
     required: ["secret", "amount", "recipientId"]
   }, function (err) {
@@ -964,7 +931,7 @@ shared.addTransactions = function (req, cb) {
 	});
 }
 
-shared.addSignedTransactions = function (req, cb) {
+shared.addUnconfirmedTransactions = function (req, cb) {
 	var body = req.body;
 	library.scheme.validate(body, {
 		type: "object",
