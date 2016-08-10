@@ -905,8 +905,6 @@ describe("PUT /api/transactions/unconfirmed", function () {
     it("Using zero amount. Should fail", function (done) {
         signedTransaction.amount = 0;
 
-        this.timeout(5000);
-        setTimeout(function () {
           node.api.put("/transactions/unconfirmed")
               .set("Accept", "application/json")
               .send(signedTransaction)
@@ -917,14 +915,11 @@ describe("PUT /api/transactions/unconfirmed", function () {
                   node.expect(res.body).to.have.property("error");
                   done();
               });
-        }, 1000);
     });
 
     it("Using positive overflown amount. Should fail", function (done) {
         signedTransaction.amount = 1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203;
 
-        this.timeout(5000);
-        setTimeout(function () {
           node.api.put("/transactions/unconfirmed")
               .set("Accept", "application/json")
               .send(signedTransaction)
@@ -935,14 +930,11 @@ describe("PUT /api/transactions/unconfirmed", function () {
                   node.expect(res.body).to.have.property("error");
                   done();
               });
-        }, 1000);
     });
 
     it("Using negative overflown amount. Should fail", function (done) {
         signedTransaction.amount = -1298231812939123812939123912939123912931823912931823912903182309123912830123981283012931283910231203;
 
-        this.timeout(5000);
-        setTimeout(function () {
           node.api.put("/transactions/unconfirmed")
               .set("Accept", "application/json")
               .send(signedTransaction)
@@ -953,7 +945,6 @@ describe("PUT /api/transactions/unconfirmed", function () {
                   node.expect(res.body).to.have.property("error");
                   done();
               });
-        }, 1000);
     });
 
     it("Using no transaction id. Should fail", function (done) {
