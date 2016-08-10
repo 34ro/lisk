@@ -16,6 +16,7 @@ var offsetTimestamp = 0;
 var expectedFee = 0;
 var totalTxFee = 0;
 var randomLISK = 0;
+
 before(function (done) {
     node.api.post("/accounts/open")
         .set("Accept", "application/json")
@@ -745,6 +746,7 @@ describe("PUT /api/transactions", function () {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.false;
                 node.expect(res.body).to.have.property("error");
                 done();
@@ -762,6 +764,7 @@ describe("PUT /api/transactions", function () {
             .expect("Content-Type", /json/)
             .expect(200)
             .end(function (err, res) {
+                // console.log(JSON.stringify(res.body));
                 node.expect(res.body).to.have.property("success").to.be.false;
                 node.expect(res.body).to.have.property("error");
                 done();
