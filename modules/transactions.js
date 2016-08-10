@@ -684,7 +684,7 @@ shared.getUnconfirmedTransactions = function (req, cb) {
 		}
 
 		var transactions = self.getUnconfirmedTransactionList(true),
-		    toSend = [];
+			toSend = [];
 
 		if (query.senderPublicKey || query.address) {
 			for (var i = 0; i < transactions.length; i++) {
@@ -703,64 +703,64 @@ shared.getUnconfirmedTransactions = function (req, cb) {
 }
 
 shared.createSignedTransaction = function (req, cb) {
-  var body = req.body;
-  library.scheme.validate(body, {
-    type: "object",
-    properties: {
-      secret: {
-        type: "string",
-    minLength: 1,
-    maxLength: 100
-      },
-    amount: {
-      type: "integer",
-    minimum: 1,
-    maximum: constants.totalAmount
-    },
-    recipientId: {
-      type: "string",
-    minLength: 1
-    }
-    },
-    required: ["secret", "amount", "recipientId"]
-  }, function (err) {
-    if (err) {
-      return cb(err[0].message);
-    }
+	var body = req.body;
+	library.scheme.validate(body, {
+		type: "object",
+		properties: {
+			secret: {
+				type: "string",
+		minLength: 1,
+		maxLength: 100
+			},
+		amount: {
+			type: "integer",
+		minimum: 1,
+		maximum: constants.totalAmount
+		},
+		recipientId: {
+			type: "string",
+		minLength: 1
+		}
+		},
+		required: ["secret", "amount", "recipientId"]
+	}, function (err) {
+		if (err) {
+			return cb(err[0].message);
+		}
 
-    modules.accounts.openAccount(body.secret, function (err, account) {
-      if (err) {
-        return cb(err);
-      }
+		modules.accounts.openAccount(body.secret, function (err, account) {
+			if (err) {
+				return cb(err);
+			}
 
-      var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
-      var keypair = ed.MakeKeypair(hash);
+			var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
+			var keypair = ed.MakeKeypair(hash);
 
-      try {
-        var transaction = library.logic.transaction.create({
-          type: transactionTypes.SEND,
-            amount: body.amount,
-            sender: account,
-            recipientId: body.recipientId,
-            keypair: keypair
-        });
-      } catch (e) {
-        return cb(e.toString());
-      }
+			try {
+				var transaction = library.logic.transaction.create({
+					type: transactionTypes.SEND,
+						amount: body.amount,
+						sender: account,
+						recipientId: body.recipientId,
+						keypair: keypair
+				});
+			} catch (e) {
+				return cb(e.toString());
+			}
 
-      cb(null, {
-        id: transaction.id,
-        type: transaction.type,
-        timestamp: transaction.timestamp,
-        senderId: transaction.senderId,
-        recipientId: transaction.recipientId,
-        amount: transaction.amount,
-        asset: transaction.asset,
-        senderPublicKey: transaction.senderPublicKey,
-        signature: transaction.signature
-      });
-    });
-  });
+			cb(null, {
+				id: transaction.id,
+				type: transaction.type,
+				timestamp: transaction.timestamp,
+				senderId: transaction.senderId,
+				recipientId: transaction.recipientId,
+				amount: transaction.amount,
+				asset: transaction.asset,
+				senderPublicKey: transaction.senderPublicKey,
+				signature: transaction.signature
+			});
+		});
+	});
 }
 
 shared.addTransactions = function (req, cb) {
@@ -938,37 +938,37 @@ shared.addUnconfirmedTransactions = function (req, cb) {
 		properties: {
 			id: {
 				type: 'string',
-				minLength: 1
+		minLength: 1
 			},
-			senderId: {
-				type: "string",
-				minLength: 1
-			},
-      type: {
-				type: "integer",
-				minimum: 0,
-      },
-      timestapmp: {
-				type: "integer",
-				minimum: 0,
-      },
-			recipientId: {
-				type: "string",
-				minLength: 1
-			},
-			amount: {
-				type: "integer",
-				minimum: 1,
-				maximum: constants.totalAmount
-			},
-			senderPublicKey: {
-				type: "string",
-				format: "publicKey"
-			},
-      signature: {
-        type: "string",
-        format: "signature"
-      }
+		senderId: {
+			type: "string",
+		minLength: 1
+		},
+		type: {
+			type: "integer",
+		minimum: 0,
+		},
+		timestapmp: {
+			type: "integer",
+		minimum: 0,
+		},
+		recipientId: {
+			type: "string",
+			minLength: 1
+		},
+		amount: {
+			type: "integer",
+			minimum: 1,
+			maximum: constants.totalAmount
+		},
+		senderPublicKey: {
+			type: "string",
+			format: "publicKey"
+		},
+		signature: {
+			type: "string",
+			format: "signature"
+		}
 		},
 		required: ["id", "type", "timestamp", "recipientId", "amount", "senderPublicKey", "signature"]
 	}, function (err) {
@@ -976,32 +976,23 @@ shared.addUnconfirmedTransactions = function (req, cb) {
 			return cb(err[0].message);
 		}
 
-		//var hash = crypto.createHash('sha256').update(body.secret, 'utf8').digest();
-		//var keypair = ed.MakeKeypair(hash);
 
-		//if (body.publicKey) {
-		//	if (keypair.publicKey.toString('hex') != body.publicKey) {
-		//		return cb("Invalid passphrase");
-		//	}
-		//}
+		console.log(body.id);
+		library.balancesSequence.add(function (cb) {
+			var transaction = {
+				id: body.id,
+				type: body.type,
+				amount: body.amount,
+				senderPublicKey: body.senderPublicKey,
+				requesterPublicKey: null,
+				recipientId: body.recipientId,
+				timestamp: body.timestamp,
+				signature: body.signature,
+				fee: constants.fees.send,
+				asset: body.asset
+			};
 
-    console.log("trs.id");
-    console.log(body.id);
-    library.balancesSequence.add(function (cb) {
-      var transaction = {
-        id: body.id,
-        type: body.type,
-        amount: body.amount,
-        senderPublicKey: body.senderPublicKey,
-        requesterPublicKey: null,
-        recipientId: body.recipientId,
-        timestamp: body.timestamp,
-        signature: body.signature,
-        fee: constants.fees.send,
-        asset: body.asset
-      };
-
-      modules.transactions.receiveTransactions([transaction], cb);
+			modules.transactions.receiveTransactions([transaction], cb);
 
 		}, function (err, transaction) {
 			if (err) {
