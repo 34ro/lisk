@@ -684,7 +684,7 @@ shared.getUnconfirmedTransactions = function (req, cb) {
 		}
 
 		var transactions = self.getUnconfirmedTransactionList(true),
-			toSend = [];
+		toSend = [];
 
 		if (query.senderPublicKey || query.address) {
 			for (var i = 0; i < transactions.length; i++) {
