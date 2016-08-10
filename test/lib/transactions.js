@@ -380,14 +380,14 @@ describe("PUT /api/transactions/signed", function () {
                 .expect(200)
                 .end(function (err, res) {
                     node.expect(res.body).to.have.property("success").to.be.true;
-                    node.expect(res.body).to.have.property("transactionId");
+                    node.expect(res.body).to.have.property("id");
                     node.expect(res.body).to.have.property("timestamp");
                     node.expect(res.body).to.have.property("recipientId");
                     node.expect(res.body).to.have.property("asset");
                     node.expect(res.body).to.have.property("senderPublicKey");
                     node.expect(res.body).to.have.property("signature");
                     node.expect(res.body.type).equal(0);
-                    node.expect(res.body.amount).equal(100000000);
+                    node.expect(res.body.amount).equal(amountToSend);
 
                     done();
                 });
@@ -505,7 +505,7 @@ describe("PUT /api/transactions/signed", function () {
                 .expect(200)
                 .end(function (err, res) {
                     node.expect(res.body).to.have.property("success").to.be.true;
-                    node.expect(res.body).to.have.property("transactionId");
+                    node.expect(res.body).to.have.property("id");
                     done();
                 });
         }, 1000);
@@ -718,7 +718,7 @@ describe("PUT /api/transactions", function () {
                 .expect(200)
                 .end(function (err, res) {
                     node.expect(res.body).to.have.property("success").to.be.true;
-                    node.expect(res.body).to.have.property("id");
+                    node.expect(res.body).to.have.property("transactionId");
                     done();
                 });
         }, 1000);
